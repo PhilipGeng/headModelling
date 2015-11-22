@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<title>myhead</title>
+	<style>
+		body{ background-color: grey; }
+		canvas{ background-color: white; }
+	</style>
+
+	<script src="libs/gl-matrix-min.js"></script>
+	<script src="libs/webgl-obj-loader.js"></script>
+	<script src="myhead.js"></script>
+	<script id="shader-vs" type="x-shader/x-vertex">
+		attribute vec3 aVertexPosition;
+		attribute vec3 aVertexNormal;
+		uniform float fTimeStep;
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+		varying highp vec4 vColor;
+		void main(void) {
+			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+
+			//lighting
+			vec3 ambientLight = vec3(0.1, 0.1, 0.1);
+			vec3 diffuseLightColor = vec3(0.7, 0.7, 0.7);
+			
+			float theta1 = fTimeStep * 0.2;
+			float theta2 = fTimeStep * 0.2+0.78;
+			vec3 pointLightPosition1 = vec3(10.0*cos(theta1),0, 10.0*sin(theta1));
+			vec3 pointLightDirection1 = normalize(
+				vec3(pointLightPosition1.xyz - aVertexPosition.xyz) );
+			vec3 pointLightPosition2 = vec3(0,10.0*sin(theta2), 10.0*cos(theta2));
+			vec3 pointLightDirection2 = normalize(
+				vec3(pointLightPosition2.xyz - aVertexPosition.xyz) );
+			float diffuseLightAmount = max( dot(normalize(aVertexNormal), normalize(pointLightDirection1)), 0.0);
+			diffuseLightAmount += max( dot(normalize(aVertexNormal), normalize(pointLightDirection2)), 0.0);
+			vColor = vec4(ambientLight + (diffuseLightAmount * diffuseLightColor), 1.0);
+		}
+	</script>
+	<script id="shader-fs" type="x-shader/x-fragment">
+		varying highp vec4 vColor;
+		void main(void) {
+			gl_FragColor = vColor;
+		}
+	</script>
+</head>
+
+<body onload="initWebGL()">
+	<canvas id="my-canvas" width="800" height="600">
+		Your browser does not support the HTML5 canvas element.
+	</canvas>
+</body>
+
+</html>
